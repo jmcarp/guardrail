@@ -4,6 +4,7 @@ pytest>=2.6.4
 pytest-cov>=1.8.1
 pytest-django>=2.8.0
 pytest-pythonpath>=0.6
+tox>=1.9.2
 
 peewee>=2.5.0
 pony>=0.6.1

@@ -87,7 +87,7 @@ class PonyPermissionSchemaFactory(models.BasePermissionSchemaFactory):
             id=pn.PrimaryKey(int, auto=True),
             agent=pn.Required(agent, index=True),
             target=pn.Required(target, index=True),
-            permission=pn.Required(unicode, 255, index=True),
+            permission=pn.Required(str, 255, index=True),
         )
 
 
