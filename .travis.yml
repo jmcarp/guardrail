@@ -1,0 +1,20 @@
+language: python
+
+sudo: false
+
+python:
+  - "2.7"
+  - "3.3"
+  - "3.4"
+  - "pypy"
+
+env:
+  - PYTHONPATH=tests/test_django
+
+install:
+  - pip install -U -r dev-requirements.txt
+  - pip install -U .
+
+before_script: flake8 guardrail
+
+script: python setup.py test
