@@ -12,9 +12,9 @@ class SchemaNotFound(GuardrailException):
     pass
 
 
-class PermissionNotFound(GuardrailException):
+class PermissionExists(GuardrailException):
     pass
 
 
-class PermissionExists(GuardrailException):
+class PermissionNotFound(GuardrailException):
     pass
