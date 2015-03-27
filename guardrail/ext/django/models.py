@@ -19,25 +19,34 @@ class DjangoPermissionManager(models.BasePermissionManager):
         return record.pk is not None
 
     @staticmethod
-    def _base_query(agent, target):
-        return {
-            'agent': agent,
-            'target': target,
-        }
+    def _build_query(query, agent, target, schema,
+                     Agent=None, Target=None, custom=None):
+        if Agent is None:
+            query = query.filter(agent=agent)
+        if Target is None:
+            query = query.filter(target=target)
+        if custom is not None:
+            query = custom(query, agent=agent, target=target, schema=schema)
+        return query
 
-    def _get_permissions(self, agent, target, schema):
-        rows = schema.objects.only(
-            'permission',
-        ).filter(
-            **self._base_query(agent, target)
+    def _get_permissions(self, agent, target, schema,
+                         Agent=None, Target=None, custom=None):
+        query = schema.objects.only('permission')
+        query = self._build_query(
+            query, agent, target, schema,
+            Agent=Agent, Target=Target, custom=custom,
         )
-        return {each.permission for each in rows}
+        return {each.permission for each in query}
 
-    def _has_permission(self, agent, target, schema, permission):
-        return schema.objects.filter(
-            permission=permission,
-            **self._base_query(agent, target)
-        ).exists()
+    def _has_permission(self, agent, target, schema, permission,
+                        Agent=None, Target=None, custom=None):
+        query = schema.objects.only('permission')
+        query = query.filter(permission=permission)
+        query = self._build_query(
+            query, agent, target, schema,
+            Agent=Agent, Target=Target, custom=custom,
+        )
+        return query.exists()
 
     def _add_permission(self, agent, target, schema, permission):
         try:
@@ -50,10 +59,9 @@ class DjangoPermissionManager(models.BasePermissionManager):
             raise exceptions.PermissionExists()
 
     def _remove_permission(self, agent, target, schema, permission):
-        query = schema.objects.filter(
-            permission=permission,
-            **self._base_query(agent, target)
-        )
+        query = schema.objects.only('permission')
+        query = query.filter(permission=permission)
+        query = self._build_query(query, agent, target, schema)
         # Note: This emits an unnecessary extra query. This can be fixed once
         # patch once ticket 16891 is resolved.
         if not query.count():

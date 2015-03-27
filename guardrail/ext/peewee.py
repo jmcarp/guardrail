@@ -16,28 +16,33 @@ class PeeweePermissionManager(models.BasePermissionManager):
         return record.get_id() is not None
 
     @staticmethod
-    def _base_query(agent, target, schema):
-        return (
-            schema.agent == agent,
-            schema.target == target,
-        )
+    def _build_query(query, agent, target, schema, Agent=None, Target=None, custom=None):
+        if Agent is None:
+            query = query.where(schema.agent == agent)
+        if Target is None:
+            query = query.where(schema.target == target)
+        if custom is not None:
+            query = custom(query, agent=agent, target=target, schema=schema)
+        return query
 
-    def _get_permissions(self, agent, target, schema):
-        query = schema.select(
-            schema.permission
-        ).where(
-            *self._base_query(agent, target, schema)
+    def _get_permissions(self, agent, target, schema,
+                         Agent=None, Target=None, custom=None):
+        query = schema.select(schema.permission)
+        query = self._build_query(
+            query, agent, target, schema,
+            Agent=Agent, Target=Target, custom=custom,
         )
         return {each.permission for each in query}
 
-    def _has_permission(self, agent, target, schema, permission):
-        row = schema.select(
-            schema.permission
-        ).where(
-            schema.permission == permission,
-            *self._base_query(agent, target, schema)
-        ).first()
-        return bool(row)
+    def _has_permission(self, agent, target, schema, permission,
+                        Agent=None, Target=None, custom=None):
+        query = schema.select(schema.permission)
+        query = query.where(schema.permission == permission)
+        query = self._build_query(
+            query, agent, target, schema,
+            Agent=Agent, Target=Target, custom=custom,
+        )
+        return bool(query.first())
 
     def _add_permission(self, agent, target, schema, permission):
         try:
@@ -50,10 +55,10 @@ class PeeweePermissionManager(models.BasePermissionManager):
             raise exceptions.PermissionExists()
 
     def _remove_permission(self, agent, target, schema, permission):
-        count = schema.delete().where(
-            schema.permission == permission,
-            *self._base_query(agent, target, schema)
-        ).execute()
+        query = schema.delete()
+        query = query.where(schema.permission == permission)
+        query = self._build_query(query, agent, target, schema)
+        count = query.execute()
         if not count:
             raise exceptions.PermissionNotFound
 

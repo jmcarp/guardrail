@@ -27,28 +27,33 @@ class SqlalchemyPermissionManager(models.BasePermissionManager):
         return True
 
     @staticmethod
-    def _base_query(agent, target, schema):
-        return (
-            schema.agent_id == agent.id,
-            schema.target_id == target.id,
-        )
+    def _build_query(query, agent, target, schema, Agent=None, Target=None, custom=None):
+        if Agent is None:
+            query = query.filter(schema.agent == agent)
+        if Target is None:
+            query = query.filter(schema.target == target)
+        if custom is not None:
+            query = custom(query, agent=agent, target=target, schema=schema)
+        return query
 
-    def _get_permissions(self, agent, target, schema):
-        query = self.session.query(
-            schema.permission
-        ).filter(
-            *self._base_query(agent, target, schema)
+    def _get_permissions(self, agent, target, schema,
+                         Agent=None, Target=None, custom=None):
+        query = self.session.query(schema.permission)
+        query = self._build_query(
+            query, agent, target, schema,
+            Agent=Agent, Target=Target, custom=custom,
         )
         return {each.permission for each in query}
 
-    def _has_permission(self, agent, target, schema, permission):
-        row = self.session.query(
-            schema.permission
-        ).filter(
-            schema.permission == permission,
-            *self._base_query(agent, target, schema)
-        ).first()
-        return bool(row)
+    def _has_permission(self, agent, target, schema, permission,
+                        Agent=None, Target=None, custom=None):
+        query = self.session.query(schema.permission)
+        query = query.filter(schema.permission == permission)
+        query = self._build_query(
+            query, agent, target, schema,
+            Agent=Agent, Target=Target, custom=custom,
+        )
+        return bool(query.first())
 
     def _add_permission(self, agent, target, schema, permission):
         row = schema(
@@ -65,12 +70,10 @@ class SqlalchemyPermissionManager(models.BasePermissionManager):
         return row
 
     def _remove_permission(self, agent, target, schema, permission):
-        count = self.session.query(
-            schema
-        ).filter(
-            schema.permission == permission,
-            *self._base_query(agent, target, schema)
-        ).delete()
+        query = self.session.query(schema)
+        query = query.filter(schema.permission == permission)
+        query = self._build_query(query, agent, target, schema)
+        count = query.delete()
         if not count:
             raise exceptions.PermissionNotFound
 

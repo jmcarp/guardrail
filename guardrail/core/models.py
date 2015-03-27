@@ -24,27 +24,49 @@ class BasePermissionManager(object):
     def __init__(self, registry=registry):
         self.registry = registry
 
-    def get_permissions(self, agent, target):
+    def get_permissions(self, agent, target,
+                        Agent=None, Target=None, custom=None):
         """List all permissions record `agent` has on record `target`.
 
         :param agent: Agent record
         :param target: Target record
+        :param Agent: Optional agent schema; provide if permission is not
+            directly related to `agent`
+        :param Target: Optional target schema; provide if permission is not
+            directly related to `target`
+        :param custom: Optional callable for customizing permission queries; if
+            provided, will be passed the original query, `agent`, `target`, and
+            the permission join table
         :returns: Set of permission labels between `agent` and `target`
         """
-        schema = self._get_permission_schema(agent, target)
-        return self._get_permissions(agent, target, schema)
+        schema = self._get_permission_schema(agent, target, Agent, Target)
+        return self._get_permissions(
+            agent, target, schema,
+            Agent=Agent, Target=Target, custom=custom
+        )
 
-    def has_permission(self, agent, target, permission):
+    def has_permission(self, agent, target, permission,
+                       Agent=None, Target=None, custom=None):
         """Check whether record `agent` has permission `permission` on record
         `target`.
 
         :param agent: Agent record
         :param target: Target record
         :param str permission: Permission
+        :param Agent: Optional agent schema; provide if permission is not
+            directly related to `agent`
+        :param Target: Optional target schema; provide if permission is not
+            directly related to `target`
+        :param custom: Optional callable for customizing permission queries; if
+            provided, will be passed the original query, `agent`, `target`, and
+            the permission join table
         :returns: Record `agent` has permission `permission` on record `target`
         """
-        schema = self._get_permission_schema(agent, target)
-        return self._has_permission(agent, target, schema, permission)
+        schema = self._get_permission_schema(agent, target, Agent, Target)
+        return self._has_permission(
+            agent, target, schema, permission,
+            Agent=Agent, Target=Target, custom=custom,
+        )
 
     def add_permission(self, agent, target, permission):
         """Grant permission `permission` to record `agent` on record `target`.
@@ -69,18 +91,25 @@ class BasePermissionManager(object):
         schema = self._get_permission_schema(agent, target)
         return self._remove_permission(agent, target, schema, permission)
 
-    def _get_permission_schema(self, agent, target):
+    def _get_permission_schema(self, agent, target, Agent=None, Target=None):
         """Look up join table linking `agent` and `target`, verifying that both
         records have been persisted.
 
         :param agent: Agent record
         :param target: Target record
+        :param Agent: Optional agent schema; provide if permission is not
+            directly related to `agent`
+        :param Target: Optional target schema; provide if permission is not
+            directly related to `target`
         :returns: Join table between `agent` and `target`
         :raises: `RecordNotSaved` if either record has not been persisted
         :raises: `SchemaNotFound` if no join table exists
         """
         self._check_saved(agent, target)
-        return self.registry.get_permission(_get_class(agent), _get_class(target))
+        return self.registry.get_permission(
+            _get_class(Agent or agent),
+            _get_class(Target or target),
+        )
 
     def _check_saved(self, *records):
         for record in records:

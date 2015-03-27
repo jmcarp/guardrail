@@ -14,24 +14,34 @@ class PonyPermissionManager(models.BasePermissionManager):
     def _is_saved(record):
         return True
 
-    def _get_permission(self, agent, target, schema, permission):
-        return pn.select(
-            row for row in schema
-            if row.agent == agent
-            and row.target == target
-            and row.permission == permission
-        )
+    @staticmethod
+    def _build_query(query, agent, target, schema,
+                     Agent=None, Target=None, custom=None):
+        if Agent is None:
+            query = query.filter(lambda row: row.agent == agent)
+        if Target is None:
+            query = query.filter(lambda row: row.target == target)
+        if custom is not None:
+            query = custom(query, agent=agent, target=target, schema=schema)
+        return query
 
-    def _get_permissions(self, agent, target, schema):
-        query = pn.select(
-            row.permission for row in schema
-            if row.agent == agent
-            and row.target == target
+    def _get_permissions(self, agent, target, schema,
+                         Agent=None, Target=None, custom=None):
+        query = pn.select(row for row in schema)
+        query = self._build_query(
+            query, agent, target, schema,
+            Agent=Agent, Target=Target, custom=custom,
         )
-        return set(query)
+        return {row.permission for row in query}
 
-    def _has_permission(self, agent, target, schema, permission):
-        return self._get_permission(agent, target, schema, permission).exists()
+    def _has_permission(self, agent, target, schema, permission,
+                        Agent=None, Target=None, custom=None):
+        query = pn.select(row for row in schema if row.permission == permission)
+        query = self._build_query(
+            query, agent, target, schema,
+            Agent=Agent, Target=Target, custom=custom,
+        )
+        return query.exists()
 
     def _add_permission(self, agent, target, schema, permission):
         try:
@@ -44,7 +54,9 @@ class PonyPermissionManager(models.BasePermissionManager):
             raise exceptions.PermissionExists()
 
     def _remove_permission(self, agent, target, schema, permission):
-        row = self._get_permission(agent, target, schema, permission).first()
+        query = pn.select(row for row in schema if row.permission == permission)
+        query = self._build_query(query, agent, target, schema)
+        row = query.first()
         if not row:
             raise exceptions.PermissionNotFound
         row.delete()
