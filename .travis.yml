@@ -12,7 +12,7 @@ env:
   - PYTHONPATH=tests/test_django
 
 install:
-  - pip install -U -r dev-requirements.txt
+  - travis_retry pip install -U -r dev-requirements.txt
   - pip install -U .
 
 before_script: flake8 guardrail
