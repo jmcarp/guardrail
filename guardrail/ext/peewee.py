@@ -115,8 +115,10 @@ class PeeweePermissionSchemaFactory(models.BasePermissionSchemaFactory):
 class PeeweeLoader(models.BaseLoader):
 
     def __init__(self, schema, column=None, kwarg='id'):
-        column = column or schema._meta.primary_key
+        column = column if column is not None else schema._meta.primary_key
         super(PeeweeLoader, self).__init__(schema, column, kwarg)
 
     def __call__(self, *args, **kwargs):
-        return self.schema.get(self.column == kwargs.get(self.kwarg))
+        return self.schema.select().where(
+            self.column == kwargs.get(self.kwarg)
+        ).first()

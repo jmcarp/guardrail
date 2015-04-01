@@ -2,7 +2,10 @@
 
 import pytest
 
+import functools
+
 from tests.utils import patch
+from tests.loaders import LoaderMixin
 from tests.integration import PermissionManagerMixin
 
 import sqlalchemy as sa
@@ -10,6 +13,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 from guardrail.core.registry import _Registry
 
+from guardrail.ext.sqlalchemy import SqlalchemyLoader
 from guardrail.ext.sqlalchemy import SqlalchemyPermissionManager
 from guardrail.ext.sqlalchemy import SqlalchemyPermissionSchemaFactory
 
@@ -24,12 +28,14 @@ Base = declarative_base()
 class Agent(Base):
     __tablename__ = 'agent'
     id = sa.Column(sa.Integer, primary_key=True)
+    name = sa.Column(sa.String)
 
 
 @registry.target
 class Target(Base):
     __tablename__ = 'target'
     id = sa.Column(sa.Integer, primary_key=True)
+    name = sa.Column(sa.String)
 
 
 @pytest.fixture(scope='session')
@@ -76,3 +82,23 @@ class TestSqlalchemyPermissionManager(PermissionManagerMixin):
 
     def count(self, schema):
         return self.session.query(schema).count()
+
+
+@pytest.fixture
+def loaders(request, session):
+    record = Agent()
+    session.add(record)
+    session.flush()
+    patch(
+        request.cls,
+        session=session,
+        Loader=functools.partial(SqlalchemyLoader, session=session),
+        Schema=Agent,
+        record=record,
+        primary=Agent.__table__.c.id,
+        secondary=Agent.__table__.c.name,
+    )
+
+@pytest.mark.usefixtures('loaders')
+class TestSqlalchemyLoader(LoaderMixin):
+    pass

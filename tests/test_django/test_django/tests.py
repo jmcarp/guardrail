@@ -5,8 +5,10 @@ from __future__ import absolute_import
 import pytest
 
 from tests.utils import patch
+from tests.loaders import LoaderMixin
 from tests.integration import PermissionManagerMixin
 
+from guardrail.ext.django.models import DjangoLoader
 from guardrail.ext.django.models import DjangoPermissionManager
 
 from . import models
@@ -32,3 +34,22 @@ class TestDjangoPermissionManager(PermissionManagerMixin):
 
     def count(self, schema):
         return schema.objects.count()
+
+
+@pytest.fixture
+def loaders(request):
+    record = models.Agent.objects.create()
+    patch(
+        request.cls,
+        Loader=DjangoLoader,
+        Schema=models.Agent,
+        record=record,
+        primary='pk',
+        secondary='name',
+    )
+
+
+@pytest.mark.django_db
+@pytest.mark.usefixtures('loaders')
+class TestDjangoLoader(LoaderMixin):
+    pass

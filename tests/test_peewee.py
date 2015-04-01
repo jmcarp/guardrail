@@ -3,12 +3,14 @@
 import pytest
 
 from tests.utils import patch
+from tests.loaders import LoaderMixin
 from tests.integration import PermissionManagerMixin
 
 import peewee as pw
 
 from guardrail.core.registry import _Registry
 
+from guardrail.ext.peewee import PeeweeLoader
 from guardrail.ext.peewee import PeeweePermissionManager
 from guardrail.ext.peewee import PeeweePermissionSchemaFactory
 
@@ -80,3 +82,21 @@ class TestPeeweePermissionManager(PermissionManagerMixin):
 
     def count(self, schema):
         return schema.select().count()
+
+
+@pytest.fixture
+def loaders(request, Agent, transaction):
+    record = Agent.create(name='freddie')
+    patch(
+        request.cls,
+        Loader=PeeweeLoader,
+        Schema=Agent,
+        record=record,
+        primary=Agent.id,
+        secondary=Agent.name,
+    )
+
+
+@pytest.mark.usefixtures('loaders')
+class TestPeeweeLoader(LoaderMixin):
+    pass

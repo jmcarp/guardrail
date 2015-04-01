@@ -3,12 +3,14 @@
 import pytest
 
 from tests.utils import patch
+from tests.loaders import LoaderMixin
 from tests.integration import PermissionManagerMixin
 
 import pony.orm as pn
 
 from guardrail.core.registry import _Registry
 
+from guardrail.ext.pony import PonyLoader
 from guardrail.ext.pony import PonyPermissionManager
 from guardrail.ext.pony import PonyPermissionSchemaFactory
 
@@ -72,3 +74,22 @@ class TestPonyPermissionManager(PermissionManagerMixin):
 
     def count(self, schema):
         return pn.count(each for each in schema)
+
+
+@pytest.fixture
+def loaders(request, Agent, transaction):
+    record = Agent()
+    pn.flush()
+    patch(
+        request.cls,
+        Loader=PonyLoader,
+        Schema=Agent,
+        record=record,
+        primary=Agent.id.name,
+        secondary=Agent.name.name,
+    )
+
+
+@pytest.mark.usefixtures('loaders')
+class TestPonyLoader(LoaderMixin):
+    pass

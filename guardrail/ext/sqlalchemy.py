@@ -143,7 +143,7 @@ class SqlalchemyPermissionSchemaFactory(models.BasePermissionSchemaFactory):
 class SqlalchemyLoader(models.BaseLoader):
 
     def __init__(self, schema, session, column=None, kwarg='id'):
-        column = column or _get_primary_column(schema)
+        column = column if column is not None else _get_primary_column(schema)
         super(SqlalchemyLoader, self).__init__(schema, column, kwarg)
         self.session = session
 

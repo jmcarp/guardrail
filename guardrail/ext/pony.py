@@ -107,7 +107,7 @@ class PonyPermissionSchemaFactory(models.BasePermissionSchemaFactory):
 class PonyLoader(models.BaseLoader):
 
     def __init__(self, schema, column=None, kwarg='id'):
-        column = column or schema._pk_.name
+        column = column if column is not None else schema._pk_.name
         super(PonyLoader, self).__init__(schema, column, kwarg)
 
     def __call__(self, *args, **kwargs):

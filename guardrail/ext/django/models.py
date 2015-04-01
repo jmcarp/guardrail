@@ -103,4 +103,4 @@ class DjangoLoader(models.BaseLoader):
 
     def __call__(self, *args, **kwargs):
         query = {self.column: kwargs.get(self.kwarg)}
-        return self.schema.objects.get(**query)
+        return self.schema.objects.filter(**query).first()
