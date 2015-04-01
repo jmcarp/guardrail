@@ -74,4 +74,9 @@ def integration(request, Agent, Target, permissions, transaction):
 
 @pytest.mark.usefixtures('integration')
 class TestPeeweePermissionManager(PermissionManagerMixin):
-    pass
+
+    def delete(self, record):
+        record.delete_instance(recursive=True)
+
+    def count(self, schema):
+        return schema.select().count()

@@ -62,10 +62,17 @@ def integration(request, session):
         request.cls,
         agent=Agent(),
         target=Target(),
+        session=session,
         manager=SqlalchemyPermissionManager(session, registry=registry),
     )
 
 
 @pytest.mark.usefixtures('integration')
 class TestSqlalchemyPermissionManager(PermissionManagerMixin):
-    pass
+
+    def delete(self, record):
+        self.session.delete(record)
+        self.session.commit()
+
+    def count(self, schema):
+        return self.session.query(schema).count()

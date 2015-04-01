@@ -81,16 +81,49 @@ class SqlalchemyPermissionManager(models.BasePermissionManager):
 def _reference_column(schema, **kwargs):
     return sa.Column(
         sa.Integer,
-        sa.ForeignKey(_get_primary_column(schema)),
+        sa.ForeignKey(
+            _get_primary_column(schema),
+            onupdate='CASCADE',
+            ondelete='CASCADE',
+        ),
         **kwargs
     )
 
 
 class SqlalchemyPermissionSchemaFactory(models.BasePermissionSchemaFactory):
+    """Permission schema factory for use with SQLAlchemy.
+
+    :param tuple bases: Base classes for created schema classes
+    :param bool cascade: Database backend supports `ON DELETE` and `ON UPDATE`
+        cascades; see :meth:`_update_parents` for details
+    """
+    def __init__(self, bases, cascade=False):
+        super(SqlalchemyPermissionSchemaFactory, self).__init__(bases)
+        self.cascade = cascade
 
     @staticmethod
     def _get_table_name(schema):
         return schema.__tablename__
+
+    def _update_parents(self, agent, target, schema):
+        """Create a many-to-many `relationship` between the `agent` and `target`
+        schemas, using the created `schema` as the join table.
+
+        Note: Use the `passive_deletes` and `passive_updates` flags only if the
+        database backend supports the ON UPDATE and ON DELETE cascades. These
+        options are not supported in SQLite, or in MySQL using the MyISAM storage
+        engine.
+        """
+        attr = 'targets_{0}'.format(schema.__tablename__)
+        backref = 'agents_{0}'.format(schema.__tablename__)
+        relation = sa.orm.relationship(
+            target,
+            secondary=schema.__table__,
+            backref=backref,
+            passive_deletes=self.cascade,
+            passive_updates=self.cascade,
+        )
+        setattr(agent, attr, relation)
 
     def _make_schema_dict(self, agent, target):
         return dict(

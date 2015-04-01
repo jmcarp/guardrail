@@ -47,10 +47,10 @@ def permissions(database):
 
 
 @pytest.yield_fixture
-def transaction():
-    with pn.db_session():
+def transaction(Agent, Target):
+    with pn.db_session:
         yield
-    pn.rollback()
+        pn.rollback()
 
 
 @pytest.fixture
@@ -65,4 +65,10 @@ def integration(request, Agent, Target, permissions, transaction):
 
 @pytest.mark.usefixtures('integration')
 class TestPonyPermissionManager(PermissionManagerMixin):
-    pass
+
+    def delete(self, record):
+        record.delete()
+        pn.commit()
+
+    def count(self, schema):
+        return pn.count(each for each in schema)

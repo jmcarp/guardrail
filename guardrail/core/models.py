@@ -161,21 +161,23 @@ class BasePermissionSchemaFactory(object):
 
         :param agent: Agent schema class
         :param target: Target schema class
-        :returns: Created schema
+        :returns: Created schema class
         """
-        self._update_parents(agent, target)
-        return type(
+        schema = type(
             self._make_schema_name(agent, target),
             self.bases,
             self._make_schema_dict(agent, target),
         )
+        self._update_parents(agent, target, schema)
+        return schema
 
-    def _update_parents(self, agent, target):
+    def _update_parents(self, agent, target, schema):
         """Creating a permission join table may require mutating the `agent`
         and `target` schemas. By default, take no action.
 
         :param agent: Agent schema class
         :param target: Target schema class
+        :param schema: Created schema class
         """
         pass
 

@@ -25,5 +25,10 @@ def integration(request):
 
 @pytest.mark.django_db
 @pytest.mark.usefixtures('integration')
-class TestDjangoPermissionmanager(PermissionManagerMixin):
-    pass
+class TestDjangoPermissionManager(PermissionManagerMixin):
+
+    def delete(self, record):
+        record.delete()
+
+    def count(self, schema):
+        return schema.objects.count()

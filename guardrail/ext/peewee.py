@@ -63,8 +63,29 @@ class PeeweePermissionManager(models.BasePermissionManager):
             raise exceptions.PermissionNotFound
 
 
-class PeeweePermissionSchemaFactory(models.BasePermissionSchemaFactory):
+def _reference_column(schema, **kwargs):
+    return pw.ForeignKeyField(
+        schema,
+        on_update='CASCADE',
+        on_delete='CASCADE',
+        **kwargs
+    )
 
+
+class PeeweePermissionSchemaFactory(models.BasePermissionSchemaFactory):
+    """Permission schema factory for use with Peewee.
+
+    Note: Peewee does not implement delete and update cascades outside the
+    database backend, so care should be taken with deleting agent and target
+    records when using a backend that does not support cascades (e.g. SQLite,
+    MySQL using the MyISAM storage engine). In this case, use the `recursive`
+    flag when deleting through Peewee:
+
+    .. code-block:: python
+
+        agent.delete_instance(recursive=True)
+
+    """
     @staticmethod
     def _get_table_name(schema):
         return schema._meta.db_table
@@ -85,8 +106,8 @@ class PeeweePermissionSchemaFactory(models.BasePermissionSchemaFactory):
         return dict(
             Meta=self._make_schema_meta(agent, target),
             id=pw.PrimaryKeyField(),
-            agent=pw.ForeignKeyField(agent, null=False, index=True),
-            target=pw.ForeignKeyField(target, null=False, index=True),
+            agent=_reference_column(agent, null=False, index=True),
+            target=_reference_column(target, null=False, index=True),
             permission=pw.CharField(null=False, index=True),
         )
 

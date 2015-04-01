@@ -71,21 +71,22 @@ class PonyPermissionSchemaFactory(models.BasePermissionSchemaFactory):
     def _update_schema(self, schema, name, reverse):
         type.__setattr__(schema, name, reverse)
         reverse._init_(schema, name)
+        schema._attrs_.append(reverse)
         schema._new_attrs_.append(reverse)
 
-    def _update_agent(self, agent, target):
-        reverse = pn.Set(self._make_schema_name(agent, target))
+    def _update_agent(self, agent, target, schema):
+        reverse = pn.Set(schema)
         name = 'targets_{0}'.format(self._get_table_name(target).lower())
         self._update_schema(agent, name, reverse)
 
-    def _update_target(self, agent, target):
-        reverse = pn.Set(self._make_schema_name(agent, target))
+    def _update_target(self, agent, target, schema):
+        reverse = pn.Set(schema)
         name = 'agents_{0}'.format(self._get_table_name(agent).lower())
         self._update_schema(target, name, reverse)
 
-    def _update_parents(self, agent, target):
-        self._update_agent(agent, target)
-        self._update_target(agent, target)
+    def _update_parents(self, agent, target, schema):
+        self._update_agent(agent, target, schema)
+        self._update_target(agent, target, schema)
 
     def _make_schema_dict(self, agent, target):
         return dict(
