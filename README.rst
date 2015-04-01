@@ -2,8 +2,13 @@
 guardrail
 =========
 
+.. image:: https://badge.fury.io/py/guardrail.png
+    :target: http://badge.fury.io/py/guardrail
+    :alt: Latest version
+
 .. image:: https://travis-ci.org/jmcarp/guardrail.png
     :target: https://travis-ci.org/jmcarp/guardrail
+    :alt: Travis CI
 
 guardrail is a Python library for managing object-level permissions that's
 designed to integrate with arbitrary databases and web frameworks. guardrail
