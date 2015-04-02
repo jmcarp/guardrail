@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Pony plugin for guardrail."""
 
 from __future__ import absolute_import
 

@@ -1,34 +1,5 @@
-=========
-guardrail
-=========
-
-.. image:: https://badge.fury.io/py/guardrail.png
-    :target: http://badge.fury.io/py/guardrail
-    :alt: Latest version
-
-.. image:: https://travis-ci.org/jmcarp/guardrail.png
-    :target: https://travis-ci.org/jmcarp/guardrail
-    :alt: Travis CI
-
-guardrail is a Python library for managing object-level permissions that's
-designed to integrate with arbitrary databases and web frameworks. guardrail
-is inspired by `django-guardian <https://github.com/lukaszb/django-guardian>`_
-and currently supports the SQLAlchemy, Peewee, Pony, and Django ORMs.
-
-Homepage: https://guardrail.readthedocs.org/
-
-Install
--------
-
-::
-
-    pip install guardrail
-
-guardrail supports Python >= 2.7 or >= 3.3 and pypy.
-
-
 Examples
---------
+========
 
 Define your models as usual, using the `registry.agent` and `registry.target`
 decorators to set up permissions relationships:
@@ -86,16 +57,3 @@ between any `agent` and `target` models:
 
     manager.has_permission(user, comment, 'delete')     # False
 
-
-Project Links
--------------
-
-- PyPI: https://pypi.python.org/pypi/guardrail
-- Issues: https://github.com/jmcarp/guardrail/issues
-
-
-License
--------
-
-MIT licensed. See the `LICENSE <https://github.com/jmcarp/guardrail/blob/master/LICENSE>`_
-file for details.

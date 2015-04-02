@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Custom object permissions backend for Django plugin"""
 
 from .models import DjangoPermissionManager
 

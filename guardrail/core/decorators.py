@@ -9,7 +9,18 @@ FORBIDDEN = 'forbidden'
 
 
 class has_permission(object):
+    """Factory for permission-checking decorators. Should be subclassed or
+    have arguments pre-filled with `functools.partial`.
 
+    :param manager: Permission manager
+    :param permission: Permission value
+    :param agent_loader: Callable that loads an agent from the `args` and `kwargs`
+        passed to the decorated function
+    :param target_loader: Callable that loads a target from the `args` and `kwargs`
+        passed to the decorated function
+    :param error_handler: Callable that handles error codes `AGENT_NOT_FOUND`,
+        `TARGET_NOT_FOUND`, and `FORBIDDEN`
+    """
     def __init__(self, manager, permission, agent_loader, target_loader, error_handler):
         self.manager = manager
         self.permission = permission
@@ -18,6 +29,11 @@ class has_permission(object):
         self.error_handler = error_handler
 
     def __call__(self, func):
+        """Decorator that checks permissions before calling `func`. Note: wrapped
+        function will be called with the loaded agent and target.
+
+        :param func: Callable to decorate
+        """
         @functools.wraps(func)
         def wrapped(*args, **kwargs):
             agent, target = self._check_permission(*args, **kwargs)
@@ -29,6 +45,10 @@ class has_permission(object):
         return wrapped
 
     def _check_permission(self, *args, **kwargs):
+        """Load agent and target records from `agent_loader` and `target_loader`,
+        then check for the requested permission. Call `error_handler` if either
+        loader returns `None`, or if permission is not present.
+        """
         agent = self.agent_loader(*args, **kwargs)
         if not agent:
             return self.error_handler(AGENT_NOT_FOUND)

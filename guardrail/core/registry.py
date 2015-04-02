@@ -4,7 +4,10 @@ from guardrail.core import exceptions
 
 
 class _Registry(object):
-
+    """Registry of schemas designated as permission agents and targets, as well
+    as the permission tables linking each agent-target pair. Should be used as
+    a singleton in ordinary use, but can be instantiated for use in tests.
+    """
     def __init__(self):
         self._agents = set()
         self._targets = set()
@@ -23,17 +26,53 @@ class _Registry(object):
         return self._permissions.values()
 
     def agent(self, agent):
+        """Decorator that registers the decorated schema as a permission agent.
+
+        Example:
+
+        .. code-block:: python
+
+            @registry.agent
+            class User(Base):
+                id = sa.Column(sa.Integer, primary_key=True)
+
+        """
         self._agents.add(agent)
         return agent
 
     def target(self, target):
+        """Decorator that registers the decorated schema as a permission target.
+
+        Example:
+
+        .. code-block:: python
+
+            @registry.target
+            class Post(Base):
+                id = sa.Column(sa.Integer, primary_key=True)
+
+        """
         self._targets.add(target)
         return target
 
     def add_permission(self, agent, target, permission):
+        """Get the join table linking schemas `agent` and `target`.
+
+        :param agent: Agent schema class
+        :param target: Target schema class
+        :param schema: Permission join table
+        """
         self._permissions[(agent, target)] = permission
 
     def get_permission(self, agent, target):
+        """Get the join table linking schemas `agent` and `target`.
+
+        :param agent: Agent schema class
+        :param target: Target schema class
+        :returns: Permission join table
+        :raises: guardian.core.exceptions.SchemaNotFound if join table does not
+            exist
+        """
         try:
             return self._permissions[(agent, target)]
         except KeyError:
@@ -45,6 +84,12 @@ class _Registry(object):
             )
 
     def make_schemas(self, factory):
+        """Create and register join tables linking all registered agent-target
+        pairs.
+
+        :param factory: Callable that takes agent and target schemas and returns
+            the schema for a permission join table
+        """
         for agent in self.agents:
             for target in self.targets:
                 permission = factory(agent, target)

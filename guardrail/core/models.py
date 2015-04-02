@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+"""Abstract base classes for `guardrail` plugins. Plugin developers should
+subclass :class:`BasePermissionManager` and :class:`BasePermissionSchemaFactory`,
+and optionally :class:`BaseLoader` as well.
+"""
 
 import abc
 
@@ -16,7 +20,7 @@ def _get_class(value):
 class BasePermissionManager(object):
     """Abstract base class for permission managers. Concrete subclasses must
     implement CRUD operations (check, add, and remove permissions), as well as
-    the :meth:`is_saved` check.
+    the :meth:`_is_saved` check.
 
     :param _Registry registry: Optional registry object; use global `registry`
         if not provided.

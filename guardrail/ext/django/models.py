@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-"""Note: Define permission schema factory in `models.py` so that Django
-migrations detect permission schemas.
+"""Django plugin for guardrail.
+Note: Define permission schema factory in `models.py` so that Django migrations
+can detect permission schemas.
 """
 
 from __future__ import absolute_import
