@@ -3,7 +3,7 @@ Intro
 
 **guardrail** is a Python library for managing object-level permissions with
 support for arbitrary ORMs and web frameworks. Other libraries like `django-guardian
-<https://github.com/lukaszb/django-guardian` handle this problem well for
+<https://github.com/lukaszb/django-guardian>`_ handle this problem well for
 particular frameworks, but **guardrail** makes it simple to implement object-
 level permissions for any framework.
 
