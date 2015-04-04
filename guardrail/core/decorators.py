@@ -12,8 +12,8 @@ class has_permission(object):
     """Factory for permission-checking decorators. Should be subclassed or
     have arguments pre-filled with `functools.partial`.
 
-    :param manager: Permission manager
     :param permission: Permission value
+    :param manager: Permission manager
     :param agent_loader: Callable that loads an agent from the `args` and `kwargs`
         passed to the decorated function
     :param target_loader: Callable that loads a target from the `args` and `kwargs`
@@ -21,9 +21,9 @@ class has_permission(object):
     :param error_handler: Callable that handles error codes `AGENT_NOT_FOUND`,
         `TARGET_NOT_FOUND`, and `FORBIDDEN`
     """
-    def __init__(self, manager, permission, agent_loader, target_loader, error_handler):
-        self.manager = manager
+    def __init__(self, permission, manager, agent_loader, target_loader, error_handler):
         self.permission = permission
+        self.manager = manager
         self.agent_loader = agent_loader
         self.target_loader = target_loader
         self.error_handler = error_handler
@@ -57,3 +57,4 @@ class has_permission(object):
             return self.error_handler(TARGET_NOT_FOUND)
         if not self.manager.has_permission(agent, target, self.permission):
             self.error_handler(FORBIDDEN)
+        return agent, target
